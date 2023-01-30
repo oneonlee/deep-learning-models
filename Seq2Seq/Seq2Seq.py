@@ -9,6 +9,7 @@ class Encoder(nn.Module):
 
         self.embedding = nn.Embedding(input_dim, embed_dim)
         self.lstm = nn.LSTM(embed_dim, hidden_dim, n_layers, dropout=dropout_ratio)
+        self.dropout = nn.Dropout(dropout_ratio)
 
     # 인코더는 소스 문장을 입력으로 받아 문맥 벡터(context vector)를 반환        
     def forward(self, src):
@@ -28,7 +29,9 @@ class Decoder(nn.Module):
     def __init__(self, output_dim, embed_dim, hidden_dim, n_layers=4, dropout_ratio=0):
         super().__init__()
 
-        self.embedding = nn.Embedding(embed_dim, output_dim)
+        self.output_dim = output_dim
+
+        self.embedding = nn.Embedding(output_dim, embed_dim)
         self.lstm = nn.LSTM(embed_dim, hidden_dim, n_layers, dropout=dropout_ratio)
         self.fc = nn.Linear(hidden_dim, output_dim)
         self.dropout = nn.Dropout(dropout_ratio)
@@ -45,12 +48,12 @@ class Decoder(nn.Module):
         # embedded: [단어 개수, 배치 크기, 임베딩 차원]
 
         output, (hidden, cell) = self.lstm(embedded, (hidden, cell))
-        # output: [단어 개수 = 1, 배치 크기, 히든 차원]: 현재 단어의 출력 정보
+        # output: [단어 개수 == 1, 배치 크기, 히든 차원]: 현재 단어의 출력 정보
         # hidden: [레이어 개수, 배치 크기, 히든 차원]: 현재까지의 모든 단어의 정보
         # cell: [레이어 개수, 배치 크기, 히든 차원]: 현재까지의 모든 단어의 정보
 
         # 단어 개수는 어차피 1개이므로 차원 제거
-        prediction = self.fc_out(output.squeeze(0))
+        prediction = self.fc(output.squeeze(0))
         # prediction : [배치 크기, 출력 차원]
         
         # (현재 출력 단어, 현재까지의 모든 단어의 정보, 현재까지의 모든 단어의 정보)
@@ -99,6 +102,14 @@ class Seq2Seq(nn.Module):
         
         return outputs
 
+# 논문의 내용대로 U(−0.08, 0.08)의 값으로 모델 가중치 파라미터 초기화 : Uniform Distribution
+def init_weights(m):
+    for name, param in m.named_parameters():
+        nn.init.uniform_(param.data, -0.08, 0.08)
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
 if __name__ == "__main__":
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"  # Arrange GPU devices starting from 0
     os.environ["CUDA_VISIBLE_DEVICES"]= "5"  # Set the GPU 5 to use
@@ -112,24 +123,19 @@ if __name__ == "__main__":
     if device =='cuda':
         torch.cuda.manual_seed_all(777)
 
-    layers = 4
-    hidden_dim = 128
-    input_dim = 100
-    output_dim = 100
+    INPUT_DIM = 24745
+    OUTPUT_DIM = 8854
+    ENC_EMB_DIM = 512 # Encoder embedding dim
+    DEC_EMB_DIM = 256 # Decoder embedding dim
+    HID_DIM = 256
+    N_LAYERS = 4
+    ENC_DROPOUT = 0.5
+    DEC_DROPOUT = 0.5
 
-    # Encoder embedding dim
-    enc_emb_dim = 256
-    # Decoder embedding dim
-    dec_emb_dim = 256
+    enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
+    dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
 
-    hid_dim = 512
-    n_layers = 4
-
-    enc_dropout = 0.5
-    dec_dropout = 0.5
-    enc = Encoder(input_dim, enc_emb_dim, hid_dim, n_layers, enc_dropout)
-    dec = Decoder(output_dim, dec_emb_dim, hid_dim, n_layers, dec_dropout)
-
-    model = Seq2Seq(enc, dec, device)
+    model = Seq2Seq(enc, dec, device).to(device)
+    model.apply(init_weights) # Uniform Distribution
     print(model)
-    
+    print(f'The model has {count_parameters(model):,} trainable parameters.') # The model has 21,684,374 trainable parameters.
