@@ -1,6 +1,7 @@
 import random
 import torch
 import torch.nn as nn
+import os
 
 class Encoder(nn.Module):
     def __init__(self, input_dim, embed_dim, hidden_dim, n_layers=4, dropout_ratio=0):
@@ -99,8 +100,14 @@ class Seq2Seq(nn.Module):
         return outputs
 
 if __name__ == "__main__":
+    os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"  # Arrange GPU devices starting from 0
+    os.environ["CUDA_VISIBLE_DEVICES"]= "5"  # Set the GPU 5 to use
+
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(device)
+    print('Device:', device)
+    print('Current cuda device:', torch.cuda.current_device())
+    print('Count of using GPUs:', torch.cuda.device_count())
+
     torch.manual_seed(777)
     if device =='cuda':
         torch.cuda.manual_seed_all(777)
@@ -124,3 +131,5 @@ if __name__ == "__main__":
     dec = Decoder(output_dim, dec_emb_dim, hid_dim, n_layers, dec_dropout)
 
     model = Seq2Seq(enc, dec, device)
+    print(model)
+    
