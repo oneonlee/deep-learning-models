@@ -8,7 +8,7 @@ https://proceedings.neurips.cc/paper/2014/file/a14ac55a4f27472c5d894ec1c3c743d2-
 ![seq2seq](https://user-images.githubusercontent.com/73745836/215377760-8e4a4d3f-8311-47b6-b426-41be2e328ef0.jpg)
 
 ## 구현
-- [torch](./Seq2Seq/Seq2Seq.py)
+- [torch](./Seq2Seq.py)
 
 ## 결과
 
