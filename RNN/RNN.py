@@ -12,30 +12,15 @@ class RNN_Cell(nn.Module):
 
         self.U = nn.Linear(input_size, hidden_size, bias=True)  # input to hidden (I, H), bias:b1
         self.W = nn.Linear(hidden_size, hidden_size, bias=True) # hidden to hidden (H, H), bias:b2
-        self.V = nn.Linear(hidden_size, hidden_size, bias=True)  # hidden to output (H, H), bias:c
     
-        # self.reset_parameters()
-
-
-    def reset_parameters(self):
-        std = 1.0 / np.sqrt(self.hidden_size)
-
-        # Initialize each parameter with numbers sampled from the continuous uniform distribution
-        for parameter in self.parameters():
-            # type(parameter.data) : Tensor
-            parameter.data.uniform_(-std, std)
-
-
     def forward(self, x_t, h_prev):
         # x_t (input of an RNN Cell)  : (Batch_size, Input_size)
         # h_t (hidden of an RNN Cell) : (Batch_size, Hidden_size)
-        # o_t (output of an RNN Cell) : (Batch_size, Hidden_size)
 
         a_t = self.U(x_t) + self.W(h_prev)  # x_t * U + h_(t-1) * U + b : (B, H)
         h_t = torch.tanh(a_t)               # tanh{x_t * U + h_(t-1) * W + b} : (B, H)
-        o_t = self.V(h_t)                   # h_t * V + c : (B, H)
 
-        return o_t, h_t # out, hidden of an RNN Cell
+        return h_t # hidden of an RNN Cell
 
 
 class RNN_Model(nn.Module):
@@ -45,12 +30,12 @@ class RNN_Model(nn.Module):
         
         super(RNN_Model, self).__init__()
 
-        # self.input_size = input_size
+        self.input_size = input_size
         self.hidden_size = hidden_size
-        # self.output_size = output_size
-        # self.num_layers = num_layers
+        self.num_layers = num_layers
 
-        self.rnns = nn.ModuleList([RNN_Cell(input_size, hidden_size) for _ in range(num_layers)])
+        self.rnn = RNN_Cell(input_size, hidden_size)
+        self.rnn_layers = nn.ModuleList([self.rnn] + [RNN_Cell(hidden_size, hidden_size) for _ in range(self.num_layers - 1)]).to(device)
 
         self.fc1 = nn.Linear(hidden_size, hidden_size, bias=True)  # (H, H)
         self.drop1 = nn.Dropout(0.25)
@@ -59,35 +44,43 @@ class RNN_Model(nn.Module):
         self.fc3 = nn.Linear(hidden_size, output_size, bias=True) # (H, O)
 
     def forward(self, x):
-        # Initialize hidden states
+        # Assume that Shape of x is batch_first=True : (B, L, I)
         batch_size = x.size(0)
-        h_t = Variable(torch.zeros(batch_size, self.hidden_size)).to(device) # (B, H)
-    
-        # Reshape Input Size for batch_first=True
+        seq_len = x.size(1)
+        
+        # Initialize hidden state of each layers
+        hiddens = [torch.zeros(batch_size, self.hidden_size).to(device) for i in range(self.num_layers)]
+              
+        # Reshape Input Size to make batch_first=True to "batch_first=False"
         x = x.transpose(0, 1) # (B, L, I) -> (L, B, I)
     
         # Propagate input through RNN
-        # Input at t  : (Seq_length, Batch_size, Input_size)
-        # Input       : (Seq_length, Batch_size, Input_size)
-        # Hidden at t : (Batch_size, Hidden_size)
-        # Output at t : (Batch_size, Hidden_size)
-        # Output      : (Seq_length, Batch_size, Hidden_size)
+        # Input at t   : (Batch_size, Input_size)
+        # Input        : (Seq_length, Batch_size, Input_size)
+        # Hiddens      : (Num_layers, Batch_size, Hidden_size)
+        # Hidden at t  : (Batch_size, Hidden_size)
+        # Final Hidden : (Seq_length, Batch_size, Hidden_size)
+        # Output       : (Seq_length, Batch_size, Hidden_size)
 
-        out_list = []
-        for i in range(seq_len): 
-            for rnn in self.rnns:
-                o_t, h_t = rnn(x[i], h_t)
-            out_list.append(o_t)
-        out = torch.stack(out_list, 0) # (L, B, H)
-
-        out = self.drop1(self.fc1(out))   # (L, B, H) -> (L, B, H)
-        out = self.drop2(self.fc2(out))   # (L, B, H) -> (L, B, H)
-        out = self.fc3(out)               # (L, B, H) -> (L, B, O)
+        final_hidden_states = []
+        for t in range(seq_len):
+            input = x[t, :, :]  
+            for layer_idx, rnn_layer in enumerate(self.rnn_layers):
+                hiddens[layer_idx] = rnn_layer(input, hiddens[layer_idx])
+                input = hiddens[layer_idx] # (B, H)
+            final_hidden_states.append(hiddens[-1])
+            
+        # list to tensor
+        output = torch.stack(final_hidden_states, dim=0) # (L, B, H)
+        
+        output = self.drop1(self.fc1(output))   # (L, B, H) -> (L, B, H)
+        output = self.drop2(self.fc2(output))   # (L, B, H) -> (L, B, H)
+        output = self.fc3(output)               # (L, B, H) -> (L, B, O)
         
         # Reshape Output Size for batch_first=True
-        out = out.transpose(0, 1) # (L, B, O) -> (B, L, O)
+        output_sequnce = output.transpose(0, 1) # (L, B, O) -> (B, L, O)
            
-        return out # (B, L, O)
+        return output_sequence # (B, L, O)
     
     
 if __name__ == "__main__":
@@ -111,3 +104,35 @@ if __name__ == "__main__":
     # Instantiate RNN model
     model = RNN_Model(input_size, hidden_size, output_size, num_layers, batch_first=True).to(device)
     print(model)
+    
+    """
+    RNN_Model(
+      (rnn): RNN_Cell(
+        (U): Linear(in_features=1, out_features=128, bias=True)
+        (W): Linear(in_features=128, out_features=128, bias=True)
+      )
+      (rnn_layers): ModuleList(
+        (0): RNN_Cell(
+          (U): Linear(in_features=1, out_features=128, bias=True)
+          (W): Linear(in_features=128, out_features=128, bias=True)
+        )
+        (1): RNN_Cell(
+          (U): Linear(in_features=128, out_features=128, bias=True)
+          (W): Linear(in_features=128, out_features=128, bias=True)
+        )
+        (2): RNN_Cell(
+          (U): Linear(in_features=128, out_features=128, bias=True)
+          (W): Linear(in_features=128, out_features=128, bias=True)
+        )
+        (3): RNN_Cell(
+          (U): Linear(in_features=128, out_features=128, bias=True)
+          (W): Linear(in_features=128, out_features=128, bias=True)
+        )
+      )
+      (fc1): Linear(in_features=128, out_features=128, bias=True)
+      (drop1): Dropout(p=0.25, inplace=False)
+      (fc2): Linear(in_features=128, out_features=128, bias=True)
+      (drop2): Dropout(p=0.25, inplace=False)
+      (fc3): Linear(in_features=128, out_features=1, bias=True)
+    )
+    """
