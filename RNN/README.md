@@ -12,8 +12,40 @@ $o_{t} = h_{t}V + c$
 - [Python file](./RNN.py)
 - [ipynb file](./RNN.ipynb)
 
+### 결과
+```python
+RNN_Model(
+  (rnn): RNN_Cell(
+    (U): Linear(in_features=1, out_features=128, bias=True)
+    (W): Linear(in_features=128, out_features=128, bias=True)
+  )
+  (rnn_layers): ModuleList(
+    (0): RNN_Cell(
+      (U): Linear(in_features=1, out_features=128, bias=True)
+      (W): Linear(in_features=128, out_features=128, bias=True)
+    )
+    (1): RNN_Cell(
+      (U): Linear(in_features=128, out_features=128, bias=True)
+      (W): Linear(in_features=128, out_features=128, bias=True)
+    )
+    (2): RNN_Cell(
+      (U): Linear(in_features=128, out_features=128, bias=True)
+      (W): Linear(in_features=128, out_features=128, bias=True)
+    )
+    (3): RNN_Cell(
+      (U): Linear(in_features=128, out_features=128, bias=True)
+      (W): Linear(in_features=128, out_features=128, bias=True)
+    )
+  )
+  (fc1): Linear(in_features=128, out_features=128, bias=True)
+  (drop1): Dropout(p=0.25, inplace=False)
+  (fc2): Linear(in_features=128, out_features=128, bias=True)
+  (drop2): Dropout(p=0.25, inplace=False)
+  (fc3): Linear(in_features=128, out_features=1, bias=True)
+)
+```
 
-
+## 참고
 
 ### PyTorch에서 제공하는 `nn.RNNCell` 코드 예제
 ```python
