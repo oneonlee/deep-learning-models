@@ -111,35 +111,3 @@ if __name__ == "__main__":
     # Instantiate RNN model
     model = RNN_Model(input_size, hidden_size, output_size, num_layers, batch_first=True).to(device)
     print(model)
-    
-    """
-    RNN_Model(
-      (rnns): ModuleList(
-        (0): RNN_Cell(
-          (U): Linear(in_features=1, out_features=128, bias=True)
-          (W): Linear(in_features=128, out_features=128, bias=True)
-          (V): Linear(in_features=128, out_features=128, bias=True)
-        )
-        (1): RNN_Cell(
-          (U): Linear(in_features=1, out_features=128, bias=True)
-          (W): Linear(in_features=128, out_features=128, bias=True)
-          (V): Linear(in_features=128, out_features=128, bias=True)
-        )
-        (2): RNN_Cell(
-          (U): Linear(in_features=1, out_features=128, bias=True)
-          (W): Linear(in_features=128, out_features=128, bias=True)
-          (V): Linear(in_features=128, out_features=128, bias=True)
-        )
-        (3): RNN_Cell(
-          (U): Linear(in_features=1, out_features=128, bias=True)
-          (W): Linear(in_features=128, out_features=128, bias=True)
-          (V): Linear(in_features=128, out_features=128, bias=True)
-        )
-      )
-      (fc1): Linear(in_features=128, out_features=128, bias=True)
-      (drop1): Dropout(p=0.25, inplace=False)
-      (fc2): Linear(in_features=128, out_features=128, bias=True)
-      (drop2): Dropout(p=0.25, inplace=False)
-      (fc3): Linear(in_features=128, out_features=1, bias=True)
-    )
-    """
