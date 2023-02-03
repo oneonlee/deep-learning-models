@@ -1,6 +1,9 @@
 # Recurrent Neural Networks
 
-### 수식
+## 구조
+![](https://lh6.googleusercontent.com/rC1DSgjlmobtRxMPFi14hkMdDqSkEkuOX7EW_QrLFSymjasIM95Za2Wf-VwSC1Tq1sjJlOPLJ92q7PTKJh2hjBoXQawM6MQC27east67GFDklTalljlt0cFLZnPMdhp8erzO)
+
+## 수식
 
 메모리 셀에서 은닉 상태를 계산하는 식을 다음과 같이 정의하고 구현하였음
 
