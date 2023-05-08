@@ -15,3 +15,5 @@
 ## Computer Vision
 - (CVPR 2016) You Only Look Once: Unified, Real-Time Object Detection
   - [Paper](https://arxiv.org/abs/1506.02640) / [Code](./YOLOv1)
+- (1958) MLP; Multi-Layer Perceptron
+  - [Wikipedia](https://en.wikipedia.org/wiki/Multilayer_perceptron) / [Code](./MLP) / [Report](./MLP/report.pdf)
