@@ -2,7 +2,7 @@
 
 ## Natural Language Processing
 - (NIPS 2017) Attention Is All You Need
-  - [Paper](https://papers.nips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html) / [Article](http://nlp.seas.harvard.edu/2018/04/03/attention.html) / Code
+  - [Paper](https://papers.nips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html) / [Article](http://nlp.seas.harvard.edu/2018/04/03/attention.html) / [Code](./Attention/Seq2Seq+Bahdanau_Attention.py)
 - (ICLR 2015) Neural Machine Translation by Jointly Learning to Align and Translate
   - [Paper](https://arxiv.org/abs/1409.0473) / [Code](./Attention)
 - (NIPS 2014) Sequence to Sequence Learning with Neural Networks
