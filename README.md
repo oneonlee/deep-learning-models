@@ -1,6 +1,8 @@
 # Deep Learning Models
 
 ## Natural Language Processing
+- (OpenAI Blog 2019) Language Models are Unsupervised Multitask Learners
+  - [Paper](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) / [Blog](https://openai.com/blog/better-language-models/) / [Code](./GPT-2/mingpt/model.py)
 - (NIPS 2017) Attention Is All You Need
   - [Paper](https://papers.nips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html) / [Article](http://nlp.seas.harvard.edu/2018/04/03/attention.html) / [Code](./Attention/Seq2Seq+Bahdanau_Attention.py)
 - (ICLR 2015) Neural Machine Translation by Jointly Learning to Align and Translate
